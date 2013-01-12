@@ -57,7 +57,13 @@
 				</section>
 
 				<section>
-					<h2></h2>
+					<h2>The Basic Technique</h2>
+					<p>Start an operation, specifying code to run when it completes
+
+						<pre data-runnable><code id='basicTechnique'>
+    setTimeout(function () { alert('Hello Summit!'); }, 2000);
+						</code></pre>
+
 				</section>
 				<section>
 					<h2>Heads Up</h2>
@@ -386,5 +392,31 @@ function linkify( selector ) {
 
 		</script>
 
+		<script>
+		(function() {
+			function runCodeBlock(codeElement) {
+				var scriptText = codeElement.textContent;
+				eval(scriptText);
+			}
+
+			var runnables = document.querySelectorAll("[data-runnable]");
+			var preElement;
+			var codeElement;
+			var b;
+
+			for(var i = 0; i < runnables.length; ++i) {
+				preElement = runnables[i];
+				codeElement = preElement.querySelector('code');
+
+				b = document.createElement('button');
+				b.addEventListener('click', function () { runCodeBlock(codeElement); });
+				b.textContent = 'Run it!';
+				b.classList.add('run-it-button');
+
+				preElement.parentNode.insertBefore(b, preElement.nextSibling);
+			}
+		}());
+
+		</script>
 	</body>
 </html>

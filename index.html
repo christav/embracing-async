@@ -18,6 +18,12 @@
 		<!-- For syntax highlighting -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
 
+		<style type='text/css'>
+			button.run-it-button {
+				font-size: 32pt;
+			}
+		</style>
+
 		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
 		<script>
 			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
@@ -60,11 +66,27 @@
 					<h2>The Basic Technique</h2>
 					<p>Start an operation, specifying code to run when it completes
 
-						<pre data-runnable><code id='basicTechnique'>
+						<pre data-runnable><code contenteditable>
     setTimeout(function () { alert('Hello Summit!'); }, 2000);
 						</code></pre>
 
 				</section>
+
+				<section>
+					<h2>Multiple operations?</h2>
+
+					<pre data-runnable><code>
+setTimeout(function() {
+    getSuggestions('bo', function (suggestions) {
+        document.getElementById('multiple-operations-output')
+          .textContent = suggestions;
+      })
+  },
+  1000);
+					</code></pre>
+					<div id='multiple-operations-output'></div>
+				</section>
+
 				<section>
 					<h2>Heads Up</h2>
 					<p>
@@ -408,15 +430,26 @@ function linkify( selector ) {
 				preElement = runnables[i];
 				codeElement = preElement.querySelector('code');
 
-				b = document.createElement('button');
-				b.addEventListener('click', function () { runCodeBlock(codeElement); });
-				b.textContent = 'Run it!';
-				b.classList.add('run-it-button');
+				(function (ce) {
+					b = document.createElement('button');
+					b.addEventListener('click', function () { runCodeBlock(ce); });
+					b.textContent = 'Run it!';
+					b.classList.add('run-it-button');
 
-				preElement.parentNode.insertBefore(b, preElement.nextSibling);
+					preElement.parentNode.insertBefore(b, preElement.nextSibling);
+				}(codeElement));
 			}
 		}());
+		</script>
 
+		<script>
+			function getSuggestions(text, callback) {
+				var output = document.getElementById('multiple-operations-output');
+				output.textContent = 'Suggestion service is thinking...';
+				setTimeout(function() {
+					callback(['Bob', 'book', 'bomb']);
+				}, 2000);
+			}
 		</script>
 	</body>
 </html>

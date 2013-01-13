@@ -64,27 +64,76 @@
 
 				<section>
 					<h2>The Basic Technique</h2>
+					<h3>Hello Wor..</h3>
 					<p>Start an operation, specifying code to run when it completes
 
 						<pre data-runnable><code contenteditable>
-    setTimeout(function () { alert('Hello Summit!'); }, 2000);
+    setTimeout(function () { alert('Hello Summit!'); },
+      2000);
 						</code></pre>
 
 				</section>
 
 				<section>
 					<h2>Multiple operations?</h2>
-
+					<h3>Text Suggestions</h3>
 					<pre data-runnable><code>
 setTimeout(function() {
     getSuggestions('bo', function (suggestions) {
-        document.getElementById('multiple-operations-output')
+        document.getElementById('moOut')
           .textContent = suggestions;
-      })
-  },
-  1000);
+      });
+  }, 1000);
 					</code></pre>
-					<div id='multiple-operations-output'></div>
+					<div id='moOut'></div>
+				</section>
+
+				<section>
+					<h2>Ifs, ands, or buts...</h2>
+					<h3>Sync Logic</h3>
+					<pre><code>if (nameAvailable(inputs.siteName)) {
+  if(!_.isDefined(inputs.region)) {
+    var regions = getAvailableRegions();
+    inputs.region = choose(regions);
+  } else {
+    validateRegion(inputs.region);
+  }
+  result = createSite(inputs);
+}
+reportCreationResult(result);
+</pre></code>
+				</section>
+
+				<section>
+					<h2>Ifs, ands, or buts...</h2>
+					<h3>Async Version</h3>
+					<pre><code>nameAvailable(inputs, siteName, function (err, isAvailable) {
+  if(!_.isDefined(inputs.region)) {
+    getAvailableRegions(function (err, regions) {
+      choose(regions, function (err, chosen) {
+      	inputs.region = regions[chosen];
+      	createSite(inputs, function (err, result) {
+      		reportCreationResult(result);
+        });
+      });
+    });
+  } else {
+    validateRegion(inputs.region, function (err, isValid) {
+      if (!err) {
+        createSite(inputs, function (err, result) {
+          reportCreationResult(result);
+        });
+      } else {
+        reportInvalidRegion(inputs.region);
+      }
+    });
+  }
+});</pre></code>
+				</section>
+				<section>
+					<blockquote>
+						You remember synchronous code? That's the kind you can read.
+					</blockquote>
 				</section>
 
 				<section>
@@ -444,7 +493,7 @@ function linkify( selector ) {
 
 		<script>
 			function getSuggestions(text, callback) {
-				var output = document.getElementById('multiple-operations-output');
+				var output = document.getElementById('moOut');
 				output.textContent = 'Suggestion service is thinking...';
 				setTimeout(function() {
 					callback(['Bob', 'book', 'bomb']);

@@ -107,7 +107,7 @@ reportCreationResult(result);
 				<section>
 					<h2>Ifs, ands, or buts...</h2>
 					<h3>Async Version</h3>
-					<pre><code>nameAvailable(inputs, siteName, function (err, isAvailable) {
+					<pre><code>nameAvailable(inputs.siteName, function (err, isAvailable) {
   if(!_.isDefined(inputs.region)) {
     getAvailableRegions(function (err, regions) {
       choose(regions, function (err, chosen) {

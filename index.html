@@ -79,7 +79,7 @@
 					<h3>Text Suggestions</h3>
 					<pre data-runnable><code>
 setTimeout(function() {
-    getSuggestions('bo', function (suggestions) {
+    getSuggestions('bo', moOut, function (err, suggestions) {
         document.getElementById('moOut')
           .textContent = suggestions;
       });
@@ -170,6 +170,93 @@ reportCreationResult(result);
           </ul>
         </section>
 
+        <section>
+          <h2>Example using async</h2>
+          <pre data-runnable><code>async.series([
+  function (callback) {
+    asyncOut.textContent = 'Waiting for you to stop typing';
+    setTimeout(callback, 1000);
+  },
+  function (callback) {
+    getSuggestions('bo', asyncOut, callback);
+  }],
+  function (err, results) {
+    document.getElementById('asyncOut')
+      .textContent = results[1];
+  }
+);</code></pre>
+          <div id='asyncOut'><div>
+        </section>
+        <section>
+          <h2>Lots of Operations</h2>          
+            <ul>
+              <li>series</li>
+              <li>parallel</li>
+              <li>waterfall</li>
+              <li>whilst</li>
+              <li>map</li>
+              <li>filter</li>
+              <li>... etc</li>
+            </ul>
+        </section>
+        <section>
+          <h2>More Complex Example</h2>
+          <h3>Sync version</h3>
+          <pre><code>if (nameAvailable(inputs.siteName)) {
+  if(!_.isDefined(inputs.region)) {
+    var regions = getAvailableRegions();
+    inputs.region = choose(regions);
+  } else {
+    validateRegion(inputs.region);
+  }
+  result = createSite(inputs);
+}
+reportCreationResult(result);
+</pre></code>
+        </section>
+        <section>
+          <h2>More Complex Example</h2>
+          <h3>Async using async</h3>
+            <pre><code>async.waterfall([
+  function (callback) {
+    nameAvailable(inputs.siteName, callback);
+  },
+  function (err, isAvailable, callback) {
+    if (isAvailable) {
+      async.waterfall([
+        function (cb) {
+          getAvailableRegions(cb);
+      },
+      function (err, regions, cb) {
+          choose(regions, cb);
+      },
+      function (err, chosen, cb) {
+        inputs.region = chosen;
+        callback();
+      }]);
+    } else {
+      validateRegion(inputs.region, callback);
+    }
+  },
+  function (callback) {
+    createSite(inputs);
+  },
+  function (err, result, callback) {
+    reportCreationResult(result);
+    callback();
+  }
+]);</pre></code>
+
+
+        </section>
+
+
+        <section>
+          <h2>Opinions</h2>
+          <p class='fragment'>Functional style
+          <p class='fragment'>Great for straight line code
+          <p class='fragment'>Messy when branching
+        </section>
 				<section>
 					<h2>Heads Up</h2>
 					<p>
@@ -497,6 +584,8 @@ function linkify( selector ) {
 
 		</script>
 
+    <script src='js/async.min.js'></script>
+
 		<script>
 		(function() {
 			function runCodeBlock(codeElement) {
@@ -526,11 +615,10 @@ function linkify( selector ) {
 		</script>
 
 		<script>
-			function getSuggestions(text, callback) {
-				var output = document.getElementById('moOut');
+			function getSuggestions(text, output, callback) {
 				output.textContent = 'Suggestion service is thinking...';
 				setTimeout(function() {
-					callback(['Bob', 'book', 'bomb']);
+					callback(null, ['Bob', 'book', 'bomb']);
 				}, 2000);
 			}
 		</script>

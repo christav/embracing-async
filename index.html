@@ -424,13 +424,13 @@ reportCreationResult(result);
         });
       } else {
         return validateRegion(inputs.region);
-	    }
-	  }
-  	return isAvailable;
+      }
+    }
+    return isAvailable;
   }).then (function (isAvailable) {
     if (isAvailable) {
-    	return createSite(inputs);
-  	}
+      return createSite(inputs);
+    }
   });</pre></code>
         </section>
 

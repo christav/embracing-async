@@ -264,10 +264,52 @@ reportCreationResult(result);
           <h2>Promises</h2>
         </section>
         <section>
-          <h2>Promises/Futures/Deferreds</h2>
-            <p>Object that represents a value that'll be available later
-            <p>Standard API for 
+          <h2>What are these things?</h2>
+            <p class='fragment'>Object that represents a value that'll be available later
+          	<p class='fragment'><a href='http://wiki.commonjs.org/wiki/Promises/A'>Consistent API for getting that value</a>
+          	<div>
+          		<p class='fragment'><a href='https://github.com/kriskowal/q'>The Q library</a>
+          	</div>
         </section>
+
+        <section>
+        	<h2>Example Using Promises</h2>
+        	<pre data-runnable><code>qOut.textContent = 'Waiting for you to stop typing...';
+qTimeout(1000)
+  .then(function () {
+    getSuggestionsPromise('bo', qOut)
+      .then(function (results) {
+        qOut.textContent = results;
+      })
+  });</code></pre>
+        	<div id='qOut'></div>
+        </section>
+
+        <section>
+        	<h2>The "triangle of death"</h2>
+        	<p>Code is still marching to right horizon
+        	<p>
+        	<p>then() returns another promise
+        	<p>Flatten promise chains
+        </section>
+
+        <section>
+        	<h2>Flattened Promise Chains</h2>
+        	<pre data-runnable><code>qfOut.textContent = 'Waiting for you to stop typing...';
+qTimeout(1000)
+  .then(function () {
+    return getSuggestionsPromise('bo', qfOut);
+  }).then(function (results) {
+    qfOut.textContent = results;
+  });</code></pre>
+        	<div id='qfOut'></div>
+        </section>
+
+        <section>
+        	<h2>Error Handling</h2>
+        	<p>Pass second parameter to <code>then()</code> to handle errors
+        </section>
+
 				<section>
 					<h2>Heads Up</h2>
 					<p>
@@ -596,6 +638,7 @@ function linkify( selector ) {
 		</script>
 
     <script src='js/async.min.js'></script>
+    <script src='js/q.js'></script>
 
 		<script>
 		(function() {
@@ -631,6 +674,24 @@ function linkify( selector ) {
 				setTimeout(function() {
 					callback(null, ['Bob', 'book', 'bomb']);
 				}, 2000);
+			}
+		</script>
+
+		<script>
+			function qTimeout(timeoutMS) {
+				var deferred = Q.defer();
+				setTimeout(function () {
+					deferred.resolve();
+				}, timeoutMS);
+				return deferred.promise;
+			}
+
+			function getSuggestionsPromise(prefix, output) {
+				output.textContent = 'Suggestion service promises an answer...';
+				return qTimeout(2000)
+					.then(function () {
+						return ['Bob', 'book', 'bonobo'];
+					});
 			}
 		</script>
 	</body>

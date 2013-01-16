@@ -248,10 +248,7 @@ reportCreationResult(result);
     callback();
   }
 ]);</pre></code>
-
-
         </section>
-
 
         <section>
           <h2>Opinions</h2>
@@ -263,6 +260,7 @@ reportCreationResult(result);
         <section>
           <h2>Promises</h2>
         </section>
+
         <section>
           <h2>What are these things?</h2>
             <p class='fragment'>Object that represents a value that'll be available later
@@ -285,12 +283,30 @@ qTimeout(1000)
         	<div id='qOut'></div>
         </section>
 
+
+        <section>
+        	<h2>Error Handling</h2>
+        	<p>Pass second parameter to <code>then()</code> to handle errors
+        </section>
+
+        <section>
+        	<h2>Error Handling Example</h2>
+        	<pre data-runnable><code contenteditable>qerrOut.textContent = 'Waiting for you to stop typing...';
+qTimeout(1000)
+  .then(function () {
+    getSuggestionsFlaky('bo', qerrOut)
+      .then(function (results) {
+          qerrOut.textContent = results;
+        });
+  });</code></pre>
+  				<div id='qerrOut'></div>
+        </section>
+
         <section>
         	<h2>The "triangle of death"</h2>
         	<p>Code is still marching to right horizon
-        	<p>
-        	<p>then() returns another promise
-        	<p>Flatten promise chains
+        	<p class='fragment'>then() returns another promise
+        	<p class='fragment'>Flatten promise chains
         </section>
 
         <section>
@@ -303,11 +319,6 @@ qTimeout(1000)
     qfOut.textContent = results;
   });</code></pre>
         	<div id='qfOut'></div>
-        </section>
-
-        <section>
-        	<h2>Error Handling</h2>
-        	<p>Pass second parameter to <code>then()</code> to handle errors
         </section>
 
 				<section>
@@ -691,6 +702,13 @@ function linkify( selector ) {
 				return qTimeout(2000)
 					.then(function () {
 						return ['Bob', 'book', 'bonobo'];
+					});
+			}
+
+			function getSuggestionsFlaky(prefix, output) {
+				output.textContent = 'Suggestion service is thinking...';
+				return qTimeout(2000).then(function () {
+						throw new Error('This service is borked!');
 					});
 			}
 		</script>

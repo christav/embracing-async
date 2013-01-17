@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Embracing Async</title>
+
+		<meta name="description" content="Examining Async Programming Patterns">
+		<meta name="author" content="Chris Tavares">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/sky.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<style type='text/css'>
+			button.run-it-button {
+				font-size: 32pt;
+			}
+		</style>
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<h1>Embracing Async</h1>
+					<h3>Examining Async Programming Patterns</h3>
+					<p>
+						<small>Chris Tavares (ctavares@microsoft.com)</small>
+					</p>
+				</section>
+
+				<section>
+					<h2>Why Async?</h2>
+					<p>Doing something that the CPU will have to wait for,
+						<i>without blocking the UI</i></p>
+
+					<ul>
+						<li>Network I/O</li>
+						<li>Disk I/O</li>
+						<li>Crossing Process Boundaries</li>
+						<li>Talking to a human</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>The Basic Technique</h2>
+					<h3>Hello Wor...</h3>
+					<p>Start an operation, specifying code to run when it completes
+
+						<pre data-runnable><code contenteditable>
+    setTimeout(function () { alert('Hello Symposium!'); },
+      2000);
+						</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Multiple operations?</h2>
+					<h3>Text Suggestions</h3>
+					<pre data-runnable><code>
+setTimeout(function() {
+    getSuggestions('bo', moOut, function (err, suggestions) {
+        document.getElementById('moOut')
+          .textContent = suggestions;
+      });
+  }, 1000);
+					</code></pre>
+					<div id='moOut'></div>
+				</section>
+
+				<section>
+					<h2>Ifs, ands, or buts...</h2>
+					<h3>Sync Logic</h3>
+					<pre><code>if (nameAvailable(inputs.siteName)) {
+  if(!_.isDefined(inputs.region)) {
+    var regions = getAvailableRegions();
+    inputs.region = choose(regions);
+  } else {
+    validateRegion(inputs.region);
+  }
+  result = createSite(inputs);
+}
+reportCreationResult(result);
+</pre></code>
+				</section>
+
+				<section>
+					<h2>Ifs, ands, or buts...</h2>
+					<h3>Async Version</h3>
+					<pre><code>nameAvailable(inputs.siteName, function (err, isAvailable) {
+  if (isAvailable) {
+    if(!_.isDefined(inputs.region)) {
+      getAvailableRegions(function (err, regions) {
+        choose(regions, function (err, chosen) {
+          inputs.region = regions[chosen];
+          createSite(inputs, function (err, result) {
+            reportCreationResult(result);
+          });
+        });
+      });
+    } else {
+      validateRegion(inputs.region, function (err, isValid) {
+        if (!err) {
+          createSite(inputs, function (err, result) {
+            reportCreationResult(result);
+          });
+        } else {
+          reportInvalidRegion(inputs.region);
+        }
+      });
+    }
+  }
+});</pre></code>
+				</section>
+				<section>
+					<blockquote>
+						You remember synchronous code? That's the kind you can read.
+					</blockquote>
+				</section>
+
+        <section>
+          <h2>Kinds of Composition</h2>
+          <ul>
+            <li>Sequence</li>
+            <li>Parallel</li>
+            <li>If</li>
+            <li>Loop</li>
+            <li>Try/Catch</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Use a Real Language!</h2>
+          <p class='fragment'>Threads are a way to implement async
+          <p class='fragment'>Makes some compositions easier
+          <p class='fragment'>Introduces lots of other complexity
+          <p class='fragment'>And you still need to get back to the UI thread
+        </section>
+
+        <section>
+          <h2>So What Do We Do?</h2>
+          <p>Async Helper Libraries
+          <p>Promises/Futures/Deferreds
+          <p>Language Enhancements
+        </section>
+
+        <section>
+          <h2>Async Helper Libraries</h2>
+          <ul>
+            <li><a href='https://github.com/creationix/step'>step</a></li>
+            <li><a href='https://github.com/willconant/flow-js'>flow</a></li>
+            <li><a href='https://github.com/caolan/async'>async</a></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Example using async</h2>
+          <pre data-runnable><code>async.series([
+  function (callback) {
+    asyncOut.textContent = 'Waiting for you to stop typing';
+    setTimeout(callback, 1000);
+  },
+  function (callback) {
+    getSuggestions('bo', asyncOut, callback);
+  }],
+  function (err, results) {
+    document.getElementById('asyncOut')
+      .textContent = results[1];
+  }
+);</code></pre>
+          <div id='asyncOut'><div>
+        </section>
+        <section>
+          <h2>Lots of Operations</h2>          
+            <ul>
+              <li>series</li>
+              <li>parallel</li>
+              <li>waterfall</li>
+              <li>whilst</li>
+              <li>map</li>
+              <li>filter</li>
+              <li>... etc</li>
+            </ul>
+        </section>
+        <section>
+          <h2>More Complex Example</h2>
+          <h3>Sync version</h3>
+          <pre><code>if (nameAvailable(inputs.siteName)) {
+  if(!_.isDefined(inputs.region)) {
+    var regions = getAvailableRegions();
+    inputs.region = choose(regions);
+  } else {
+    validateRegion(inputs.region);
+  }
+  result = createSite(inputs);
+}
+reportCreationResult(result);
+</pre></code>
+        </section>
+        <section>
+          <h2>More Complex Example</h2>
+          <h3>Async using async</h3>
+            <pre><code>async.waterfall([
+  function (callback) {
+    nameAvailable(inputs.siteName, callback);
+  },
+  function (err, isAvailable, callback) {
+    if (isAvailable) {
+      if (!_isDefined(inputs.region)) {
+        async.waterfall([
+          function (cb) {
+            getAvailableRegions(cb);
+          },
+          function (err, regions, cb) {
+              choose(regions, cb);
+          },
+          function (err, chosen, cb) {
+            inputs.region = chosen;
+            callback(true);
+          }]);
+      } else {
+          validateRegion(inputs.region, callback);
+      }
+    } else {
+      callback(false);
+    }
+  },
+  function (isAvailable, callback) {
+  	if (isAvailable) {
+      createSite(inputs, callback);
+    } else {
+      callback();
+    }
+  },
+  function (err, result, callback) {
+    reportCreationResult(result);
+    callback();
+  }
+]);</pre></code>
+        </section>
+
+        <section>
+          <h2>Opinions</h2>
+          <p class='fragment'>Great for straight line code
+          <p class='fragment'>Integrates well with callback code
+          <p class='fragment'>Messy when branching - snarled callbacks
+        </section>
+        <section>
+          <h2>Promises</h2>
+        </section>
+
+        <section>
+          <h2>What are these things?</h2>
+            <p class='fragment'>Object that represents a value that'll be available later
+          	<p class='fragment'><a href='http://wiki.commonjs.org/wiki/Promises/A'>Consistent API for getting that value</a>
+          	<div>
+          		<p class='fragment'><a href='https://github.com/kriskowal/q'>The Q library</a>
+          	</div>
+        </section>
+
+        <section>
+        	<h2>Example Using Promises</h2>
+        	<pre data-runnable><code>qOut.textContent = 'Waiting for you to stop typing...';
+qTimeout(1000)
+  .then(function () {
+    getSuggestionsPromise('bo', qOut)
+      .then(function (results) {
+        qOut.textContent = results;
+      })
+  });</code></pre>
+        	<div id='qOut'></div>
+        </section>
+
+
+        <section>
+        	<h2>Error Handling</h2>
+        	<p>Pass second parameter to <code>then()</code> to handle errors
+        </section>
+
+        <section>
+        	<h2>Error Handling Example</h2>
+        	<pre data-runnable><code contenteditable>qerrOut.textContent = 'Waiting for you to stop typing...';
+qTimeout(1000)
+  .then(function () {
+    getSuggestionsFlaky('bo', qerrOut)
+      .then(function (results) {
+          qerrOut.textContent = results;
+        });
+  });</code></pre>
+  				<div id='qerrOut'></div>
+        </section>
+
+        <section>
+        	<h2>When does "p" complete?</h2>
+        	<pre><code>qerrOut.textContent = 'Waiting for you to stop typing...';
+var p = qTimeout(1000)
+  .then(function () {
+    getSuggestionsFlaky('bo', qerrOut)
+      .then(function (results) {
+          qerrOut.textContent = results;
+        },
+        function (err) {
+          qerrOut.textContent = 'Error: ' + err.message;
+      });
+  });
+
+return p;</code></pre>
+        </section>
+
+        <section>
+        	<h2>Properly Chaining Promises</h2>
+        	<p class='fragment'>Make sure to return inner promises
+        	<p class='fragment'>Prefer flat to nested
+        </section>
+
+        <section>
+        	<h2>Inner Nesting</h2>
+        	<pre><code contenteditable>qerrOut.textContent = 'Waiting for you to stop typing...';
+var p = qTimeout(1000)
+  .then(function () {
+    return getSuggestionsFlaky('bo', qerrOut)
+      .then(function (results) {
+          qerrOut.textContent = results;
+        },
+        function (err) {
+          qerrOut.textContent = 'Error: ' + err.message;
+      });
+  });
+
+return p;</code></pre>
+				</section>
+
+        <section>
+        	<h2>Flattened Promise Chains</h2>
+        	<pre data-runnable><code>qfOut.textContent = 'Waiting for you to stop typing...';
+return qTimeout(1000)
+  .then(function () {
+    return getSuggestionsPromise('bo', qfOut);
+  }).then(function (results) {
+    qfOut.textContent = results;
+  }).then(null, function (err) {
+    qerrOut.textContent = 'Error: ' + err.message;
+  });</code></pre>
+        	<div id='qfOut'></div>
+        </section>
+
+        <section>
+        	<h2>Error Handling<h2>
+        	<h3>or lack thereof</h3>
+
+        	<p>Promises capture exceptions
+        	<p>Unhandled exceptions are swallowed
+        	<p>Always have an error handler...
+        	<p class='fragment'>or call .done() (q/winjs only)
+        </section>
+
+        <section>
+        	<h2>Error Handling Example</h2>
+        	<pre><code contenteditable>qfOut.textContent = 'Waiting for you to stop typing...';
+qTimeout(1000)
+  .then(function () {
+    return getSuggestionsFlaky('bo', qfOut);
+  }).then(function (results) {
+    qfOut.textContent = results;
+  });</code></pre>
+        </section>
+
+        <section>
+        	<h2>What does done() do?</h2>
+        	<p class='fragment'>Returns undefined (ends chaining)
+        	<p class='fragment'>If promise is resolved, does nothing
+        	<p class='fragment'>If promise is rejected, throws to event loop
+        	<p class='fragment'>winjs acts like you don't need it, but you do
+        </section>
+
+        <section>
+          <h2>More Complex Example</h2>
+          <h3>Sync version</h3>
+          <pre><code>if (nameAvailable(inputs.siteName)) {
+  if(!_.isDefined(inputs.region)) {
+    var regions = getAvailableRegions();
+    inputs.region = choose(regions);
+  } else {
+    validateRegion(inputs.region);
+  }
+  result = createSite(inputs);
+}
+reportCreationResult(result);
+</pre></code>
+        </section>
+        <section>
+          <h2>More Complex Example</h2>
+          <h3>Async using Promises</h3>
+            <pre><code>nameAvailable(inputs.siteName)
+  .then(function(isAvailable) {
+    if (isAvailable) {
+      if (!_.isDefined(inputs.region)) {
+        return getAvailableRegions()
+          .then(function(regions) {
+            return choose(regions);
+          }).then(function (region) {
+            inputs.region = region;
+        });
+      } else {
+        return validateRegion(inputs.region);
+      }
+    }
+    return isAvailable;
+  }).then (function (isAvailable) {
+    if (isAvailable) {
+      return createSite(inputs);
+    }
+  });</pre></code>
+        </section>
+
+        <section>
+        	<h2>Opinions</h2>
+        	<p class='fragment'>More OO style - promises are values
+        	<p class='fragment'>Infectious
+        	<p class='fragment'>Composition is easier/better
+        	<p class='fragment'>(JS) Interoperable - except for jQuery
+        </section>
+
+        <section>
+        	<h2>Boy this is hard</h2>
+        	<p>Have to split code at async points
+        	<p class='fragment'>It's <a href='http://en.wikipedia.org/wiki/Continuation_passing_style'>complex but mechanical</a>
+        	<p class='fragment'>If only there was some way to automate the transformations...
+        </section>
+
+        <section>
+        	<h2>Compiler support</h2>
+        	<h3>C#: async/await</h3>
+        	<p>Compiler does CPS tranformation for you
+        </section>
+        <section>
+        	<h2>What about Javascript?</h2>
+        	<h3><a href='https://github.com/Sage/streamlinejs'>Streamline</a></h3>
+        	<p>Javascript preprocessor
+        	<p>Pass '_' instead of callback
+        	<p>Rewrites the code to callback style
+        	<p>Requires node-style callback: function (err, value, ...)
+        </section>
+
+        <section>
+          <h2>More Complex Example</h2>
+          <h3>Sync version</h3>
+          <pre><code>if (nameAvailable(inputs.siteName)) {
+  if(!_.isDefined(inputs.region)) {
+    var regions = getAvailableRegions();
+    inputs.region = choose(regions);
+  } else {
+    validateRegion(inputs.region);
+  }
+  result = createSite(inputs);
+}
+reportCreationResult(result);</pre></code>
+        </section>
+
+        <section>
+          <h2>More Complex Example</h2>
+          <h3>Async using Streamline</h3>
+          <pre><code>if (nameAvailable(inputs.siteName, _)) {
+  if(!_.isDefined(inputs.region)) {
+    var regions = getAvailableRegions(_);
+    inputs.region = choose(regions, _);
+  } else {
+    validateRegion(inputs.region, _);
+  }
+  result = createSite(inputs, _);
+}
+reportCreationResult(result);</pre></code>
+        </section>
+
+        <section>
+        	<h2>Opinions</h2>
+        	<p class='fragment'>The way of the future
+        	<p class='fragment'>Code looks almost like sync version
+        	<p class='fragment'>Debugging Streamline is ... suboptimal
+        	<p class='fragment'>Streamline requires build step
+				</section>
+
+				<section>
+					<h2>Debugging</h2>
+					<h1 class='fragment'>SUCKS</h1>
+				</section>
+
+				<section>
+					<h2>Things to Think About</h2>
+					<ul>
+						<li>Your stack traces will be useless - console.log is your friend</li>
+						<li>Exceptions will get trapped - use done()/error handlers!</li>
+						<li>Single stepping won't step through async chains - lots of breakpoints</li>
+						<li>Prefer coarse grained async methods</li>
+				</section>
+
+				<section>
+					<h1>Thanks!</h1>
+					<p>Questions?
+					<p><a href='https://github.com/christav/embracing-async'>https://github.com/christav/embracing-async</a>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+    <script src='js/async.min.js'></script>
+    <script src='js/q.js'></script>
+
+		<script>
+		(function() {
+			function runCodeBlock(codeElement) {
+				var scriptText = codeElement.textContent;
+				eval(scriptText);
+			}
+
+			var runnables = document.querySelectorAll("[data-runnable]");
+			var preElement;
+			var codeElement;
+			var b;
+
+			for(var i = 0; i < runnables.length; ++i) {
+				preElement = runnables[i];
+				codeElement = preElement.querySelector('code');
+
+				(function (ce) {
+					b = document.createElement('button');
+					b.addEventListener('click', function () { runCodeBlock(ce); });
+					b.textContent = 'Run it!';
+					b.classList.add('run-it-button');
+
+					preElement.parentNode.insertBefore(b, preElement.nextSibling);
+				}(codeElement));
+			}
+		}());
+		</script>
+
+		<script>
+			function getSuggestions(text, output, callback) {
+				output.textContent = 'Suggestion service is thinking...';
+				setTimeout(function() {
+					callback(null, ['Bob', 'book', 'bomb']);
+				}, 2000);
+			}
+		</script>
+
+		<script>
+			function qTimeout(timeoutMS) {
+				var deferred = Q.defer();
+				setTimeout(function () {
+					deferred.resolve();
+				}, timeoutMS);
+				return deferred.promise;
+			}
+
+			function getSuggestionsPromise(prefix, output) {
+				output.textContent = 'Suggestion service promises an answer...';
+				return qTimeout(2000)
+					.then(function () {
+						return ['Bob', 'book', 'bonobo'];
+					});
+			}
+
+			function getSuggestionsFlaky(prefix, output) {
+				output.textContent = 'Suggestion service is thinking...';
+				return qTimeout(2000).then(function () {
+						throw new Error('This service is borked!');
+					});
+			}
+		</script>
+	</body>
+</html>

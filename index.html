@@ -191,7 +191,7 @@ reportCreationResult(result);
           <div id='asyncOut'><div>
         </section>
         <section>
-          <h2>Lots of Operations</h2>          
+          <h2>Lots of Operations</h2>
             <ul>
               <li>series</li>
               <li>parallel</li>
@@ -481,7 +481,7 @@ reportCreationResult(result);</pre></code>
           <h2>More Complex Example</h2>
           <h3>Async using Streamline</h3>
           <pre><code>if (nameAvailable(inputs.siteName, _)) {
-  if(!_.isDefined(inputs.region)) {
+  if(!__.isDefined(inputs.region)) {
     var regions = getAvailableRegions(_);
     inputs.region = choose(regions, _);
   } else {
@@ -556,6 +556,18 @@ reportCreationResult(result);</pre></code>
 
     <script src='js/async.min.js'></script>
     <script src='js/q.js'></script>
+    <script src='js/streamline/require-stub.js'></script>
+    <script src='js/streamline/narcissus/jsdefs.js'></script>
+    <script src='js/streamline/narcissus/jslex.js'></script>
+    <script src='js/streamline/narcissus/jsparse.js'></script>
+    <script src='js/streamline/narcissus/jsdecomp.js'></script>
+    <script src='js/streamline/version.js'></script>
+    <script src='js/streamline/source-map.js'></script>
+    <script src='js/streamline/format.js'></script>
+    <script src='js/streamline/transform.js'></script>
+    <script src='js/streamline/future.js'></script>
+    <script src='js/streamline/runtime.js'></script>
+    <script src='js/streamline/builtins.js'></script>
 
 		<script>
 		(function() {

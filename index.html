@@ -22,6 +22,10 @@
 			button.run-it-button {
 				font-size: 32pt;
 			}
+
+      button.compile-it-button {
+        font-size: 32pt;
+      }
 		</style>
 
 		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
@@ -468,7 +472,7 @@ reportCreationResult(result);
           <pre data-streamline='compiledGoesHere'><code contenteditable>slOut.textContent = 'Waiting for you to stop typing...';
 setTimeout(_, 1000);
 var suggestions = getSuggestions('bo', slOut, _);
-document.getElementById('slOut').textContent = suggestions;</code></pre>
+slOut.textContent = suggestions;</code></pre>
         </section>
 
         <section>
@@ -621,7 +625,7 @@ reportCreationResult(result);</pre></code>
       function compileStreamline(sourceElement, destElement) {
         var streamlineCode = sourceElement.textContent;
         var jsCode = Streamline.transform(streamlineCode, {
-          lines: "preserve"
+          lines: "ignore"
         });
         destElement.textContent = jsCode;
       }
@@ -641,6 +645,7 @@ reportCreationResult(result);</pre></code>
           b = document.createElement('button');
           b.addEventListener('click', function () { compileStreamline(se, ce); });
           b.textContent = 'Compile';
+          b.classList.add('compile-it-button');
           compiledCodeElement.parentNode.parentNode.insertBefore(b, compiledCodeElement.parentNode.nextSibling);
         }(sourceCodeElement, compiledCodeElement));
       }
@@ -654,6 +659,13 @@ reportCreationResult(result);</pre></code>
 					callback(null, ['Bob', 'book', 'bomb']);
 				}, 2000);
 			}
+
+      function getSuggestionsFlakyCB(text, output, callback) {
+        output.textContent = 'Suggestion service is thinking...';
+        setTimeout(function () {
+          callback(new Error('This service is borked!'));
+        }, 2000);
+      }
 		</script>
 
 		<script>

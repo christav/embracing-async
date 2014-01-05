@@ -463,6 +463,21 @@ reportCreationResult(result);
         </section>
 
         <section>
+          <h2>Example</h2>
+          <h3>Streamline Code</h3>
+          <pre data-streamline='compiledGoesHere'><code contenteditable>slOut.textContent = 'Waiting for you to stop typing...';
+setTimeout(_, 1000);
+var suggestions = getSuggestions('bo', slOut, _);
+document.getElementById('slOut').textContent = suggestions;</code></pre>
+        </section>
+
+        <section>
+          <h2>Compiled code</h2>
+          <pre data-runnable id='compiledGoesHere'><code></code></pre>
+          <div id='slOut'></div>
+        </section>
+
+        <section>
           <h2>More Complex Example</h2>
           <h3>Sync version</h3>
           <pre><code>if (nameAvailable(inputs.siteName)) {
@@ -570,6 +585,12 @@ reportCreationResult(result);</pre></code>
     <script src='js/streamline/builtins.js'></script>
 
 		<script>
+    process = {
+      nextTick: function(f) {
+        setTimeout(f, 0);
+      }
+    };
+
 		(function() {
 			function runCodeBlock(codeElement) {
 				var scriptText = codeElement.textContent;
@@ -595,6 +616,35 @@ reportCreationResult(result);</pre></code>
 				}(codeElement));
 			}
 		}());
+
+    (function() {
+      function compileStreamline(sourceElement, destElement) {
+        var streamlineCode = sourceElement.textContent;
+        var jsCode = Streamline.transform(streamlineCode, {
+          lines: "preserve"
+        });
+        destElement.textContent = jsCode;
+      }
+
+      var compilables = document.querySelectorAll('[data-streamline]');
+      var preElement, destElementId;
+      var sourceCodeElement, compiledCodeElement;
+
+      for(var i = 0; i < compilables.length; ++i) {
+        preElement = compilables[i];
+        destElementId = preElement.dataset.streamline;
+
+        sourceCodeElement = preElement.querySelector('code');
+        compiledCodeElement = document.querySelector('#' + destElementId + ' code');
+
+        (function (se, ce) {
+          b = document.createElement('button');
+          b.addEventListener('click', function () { compileStreamline(se, ce); });
+          b.textContent = 'Compile';
+          compiledCodeElement.parentNode.parentNode.insertBefore(b, compiledCodeElement.parentNode.nextSibling);
+        }(sourceCodeElement, compiledCodeElement));
+      }
+    }());
 		</script>
 
 		<script>

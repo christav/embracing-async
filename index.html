@@ -481,7 +481,7 @@ reportCreationResult(result);</pre></code>
           <h2>More Complex Example</h2>
           <h3>Async using Streamline</h3>
           <pre><code>if (nameAvailable(inputs.siteName, _)) {
-  if(!_.isDefined(inputs.region)) {
+  if(!__.isDefined(inputs.region)) {
     var regions = getAvailableRegions(_);
     inputs.region = choose(regions, _);
   } else {
